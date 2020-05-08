@@ -1,0 +1,24 @@
+{
+	"name": "COMENZAR",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Stopped",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "MIGRACION_PERSONA",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Minute",
+				"interval": 2,
+				"startTime": "2020-05-08T17:32:00Z",
+				"timeZone": "UTC"
+			}
+		}
+	}
+}

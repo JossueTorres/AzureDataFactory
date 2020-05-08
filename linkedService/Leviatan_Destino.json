@@ -1,0 +1,16 @@
+{
+	"name": "Leviatan_Destino",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": "integrated security=False;encrypt=True;connection timeout=30;data source=leviatan-jt.database.windows.net;initial catalog=PRUEBA_MIGRADO;user id=leviatan_admin",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkZBQy1FVExfOGU3NTkyMWMtODI4Zi00MDM0LWFhYTUtYmY2ZWE1NmEwNjQwIg0KfQ=="
+		},
+		"connectVia": {
+			"referenceName": "Integration-Runtime",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

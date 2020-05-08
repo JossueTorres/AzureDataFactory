@@ -1,0 +1,184 @@
+{
+	"name": "MIGRACION_PERSONA",
+	"properties": {
+		"activities": [
+			{
+				"name": "Migrar",
+				"description": "",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT * FROM PERSONA",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "AzureSqlSink"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "CODIGO",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NOMBRE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NOMBRE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CORREO",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CORREO",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Origen_Persona",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Destino_Persona",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Validar",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Migrar",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT MAX(CAST(CODIGO AS INT)) FIN FROM PERSONA",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "Destino_Persona",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Borrar_Datos",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Validar",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[SP_BORRAR_DATOS]",
+					"storedProcedureParameters": {
+						"MAXID": {
+							"value": {
+								"value": "@activity('Validar').output.firstRow.FIN",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Leviatan_Origen",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Data Migrada",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Borrar_Datos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "Destino_Persona",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"columnCount"
+					]
+				}
+			}
+		],
+		"variables": {
+			"Resultado_Migrar": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
+		"annotations": []
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
