@@ -1,0 +1,30 @@
+{
+	"name": "Origen_Persona1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Leviatan_Origen",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOMBRE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CORREO",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "PERSONA"
+		}
+	}
+}
