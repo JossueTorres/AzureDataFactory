@@ -41,7 +41,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('TABLAS').output",
+						"value": "@activity('TABLAS').output.value",
 						"type": "Expression"
 					},
 					"activities": [
