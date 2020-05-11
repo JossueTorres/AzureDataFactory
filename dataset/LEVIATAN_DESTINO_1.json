@@ -1,0 +1,30 @@
+{
+	"name": "LEVIATAN_DESTINO_1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Leviatan_Destino",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TABLA": {
+				"type": "string"
+			},
+			"ESQUEMA": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().ESQUEMA",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().TABLA",
+				"type": "Expression"
+			}
+		}
+	}
+}

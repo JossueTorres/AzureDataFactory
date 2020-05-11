@@ -1,0 +1,12 @@
+{
+	"name": "LEVIATAN_ORIGEN_1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Leviatan_Origen",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
