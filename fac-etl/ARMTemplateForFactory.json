@@ -21,6 +21,170 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/MIGRACION COMPLETA')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "TABLAS",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT '[' + TABLE_SCHEMA + '].[' + TABLE_NAME + ']' As COMPLETO\n, TABLE_SCHEMA As ESQUEMA,\nTABLE_NAME As TABLA\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "LEVIATAN_ORIGEN_1",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "LOOP TABLAS",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "TABLAS",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('TABLAS').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "COPIA ENTERA",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "SELECT * FROM @{item().COMPLETO}",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00"
+										},
+										"sink": {
+											"type": "AzureSqlSink"
+										},
+										"enableStaging": false
+									},
+									"inputs": [
+										{
+											"referenceName": "LEVIATAN_ORIGEN_1",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "LEVIATAN_DESTINO_1",
+											"type": "DatasetReference",
+											"parameters": {
+												"TABLA": {
+													"value": "@item().TABLA",
+													"type": "Expression"
+												},
+												"ESQUEMA": {
+													"value": "@item().ESQUEMA",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/LEVIATAN_ORIGEN_1')]",
+				"[concat(variables('factoryId'), '/datasets/LEVIATAN_DESTINO_1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LEVIATAN_DESTINO_1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Leviatan_Destino",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TABLA": {
+						"type": "string"
+					},
+					"ESQUEMA": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().ESQUEMA",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TABLA",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Destino')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LEVIATAN_ORIGEN_1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Leviatan_Origen",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Origen')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/Leviatan_Destino')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -96,167 +260,6 @@
 				}
 			},
 			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/MIGRACION COMPLETA')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "TABLAS",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "7.00:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"sqlReaderQuery": "SELECT '[' + TABLE_SCHEMA + '].[' + TABLE_NAME + ']' As COMPLETO\n, TABLE_SCHEMA As ESQUEMA,\nTABLE_NAME As TABLA\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'",
-								"queryTimeout": "02:00:00"
-							},
-							"dataset": {
-								"referenceName": "LEVIATAN_ORIGEN_1",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "LOOP TABLAS",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "TABLAS",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('TABLAS').output",
-								"type": "Expression"
-							},
-							"activities": [
-								{
-									"name": "COPIA ENTERA",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "7.00:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "AzureSqlSource",
-											"sqlReaderQuery": "SELECT * FROM @{item().COMPLETO}",
-											"queryTimeout": "02:00:00"
-										},
-										"sink": {
-											"type": "AzureSqlSink"
-										},
-										"enableStaging": false
-									},
-									"inputs": [
-										{
-											"referenceName": "LEVIATAN_ORIGEN_1",
-											"type": "DatasetReference",
-											"parameters": {}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "LEVIATAN_DESTINO_1",
-											"type": "DatasetReference",
-											"parameters": {
-												"TABLA": {
-													"value": "@item().TABLA",
-													"type": "Expression"
-												},
-												"ESQUEMA": {
-													"value": "@item().ESQUEMA",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/LEVIATAN_ORIGEN_1')]",
-				"[concat(variables('factoryId'), '/datasets/LEVIATAN_DESTINO_1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LEVIATAN_ORIGEN_1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Leviatan_Origen",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Origen')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LEVIATAN_DESTINO_1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Leviatan_Destino",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"TABLA": {
-						"type": "string"
-					},
-					"ESQUEMA": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": {
-						"value": "@dataset().ESQUEMA",
-						"type": "Expression"
-					},
-					"table": {
-						"value": "@dataset().TABLA",
-						"type": "Expression"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Destino')]"
-			]
 		}
 	]
 }
