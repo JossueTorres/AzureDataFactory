@@ -129,7 +129,7 @@
 				}
 			},
 			{
-				"name": "Copy data1",
+				"name": "Migrar Intermediaria",
 				"type": "Copy",
 				"dependsOn": [
 					{
@@ -151,7 +151,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "SELECT PERSONA.ID, PERSONA.NOMBRE \"NOMBRE_COMPLETO\", PERSONA.CORREO, AUTO.ID CODIGO, AUTO.NOMBRE FROM PERSONA\nCROSS JOIN \"AUTO\"\nWHERE PERSONA.ID > @{variables('lastCode')}",
+							"value": "SELECT PERSONA.ID CODIGO, PERSONA.NOMBRE, PERSONA.CORREO, AUTO.NOMBRE AUTOMOVIL FROM PERSONA\nCROSS JOIN \"AUTO\"\nWHERE PERSONA.ID > @{variables('lastCode')}",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00"
@@ -159,7 +159,52 @@
 					"sink": {
 						"type": "AzureSqlSink"
 					},
-					"enableStaging": false
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CODIGO",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "CODIGO",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NOMBRE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NOMBRE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CORREO",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CORREO",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AUTOMOVIL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AUTOMOVIL",
+									"type": "String"
+								}
+							}
+						]
+					}
 				},
 				"inputs": [
 					{
@@ -195,11 +240,11 @@
 				}
 			},
 			{
-				"name": "Stored procedure1",
+				"name": "Borrar Intermediaria",
 				"type": "SqlServerStoredProcedure",
 				"dependsOn": [
 					{
-						"activity": "Copy data1",
+						"activity": "Migrar Intermediaria",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -212,13 +257,20 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[SP_LIMPIAR]"
+				},
+				"linkedServiceName": {
+					"referenceName": "Leviatan_Destino",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"variables": {
 			"lastCode": {
 				"type": "String",
-				"defaultValue": "8"
+				"defaultValue": "0"
 			}
 		},
 		"annotations": []
