@@ -77,7 +77,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@activity('Buscar Tablas').output",
+								"value": "@activity('Buscar Tablas').output.value",
 								"type": "Expression"
 							},
 							"activities": [
