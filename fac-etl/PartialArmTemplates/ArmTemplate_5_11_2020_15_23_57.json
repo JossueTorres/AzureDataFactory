@@ -6,212 +6,12 @@
 			"type": "string",
 			"metadata": "Data Factory name",
 			"defaultValue": "fac-etl"
-		},
-		"Leviatan_Destino_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'Leviatan_Destino'"
-		},
-		"Leviatan_ETL_Final_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'Leviatan_ETL_Final'"
-		},
-		"Leviatan_Origen_connectionString": {
-			"type": "secureString",
-			"metadata": "Secure string for 'connectionString' of 'Leviatan_Origen'"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
-		{
-			"name": "[concat(parameters('factoryName'), '/COMENZAR')]",
-			"type": "Microsoft.DataFactory/factories/triggers",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"runtimeState": "Stopped",
-				"pipelines": [],
-				"type": "ScheduleTrigger",
-				"typeProperties": {
-					"recurrence": {
-						"frequency": "Minute",
-						"interval": 2,
-						"startTime": "2020-05-08T17:32:00Z",
-						"timeZone": "UTC"
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Integration-Runtime')]",
-			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"type": "Managed",
-				"typeProperties": {
-					"computeProperties": {
-						"location": "East US",
-						"dataFlowProperties": {
-							"computeType": "General",
-							"coreCount": 8,
-							"timeToLive": 0
-						}
-					}
-				}
-			},
-			"dependsOn": []
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Leviatan_Destino')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": "[parameters('Leviatan_Destino_connectionString')]"
-				},
-				"connectVia": {
-					"referenceName": "Integration-Runtime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/Integration-Runtime')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Leviatan_ETL_Final')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": "[parameters('Leviatan_ETL_Final_connectionString')]"
-				},
-				"connectVia": {
-					"referenceName": "Integration-Runtime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/Integration-Runtime')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Leviatan_Origen')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureSqlDatabase",
-				"typeProperties": {
-					"connectionString": "[parameters('Leviatan_Origen_connectionString')]"
-				},
-				"connectVia": {
-					"referenceName": "Integration-Runtime",
-					"type": "IntegrationRuntimeReference"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/integrationRuntimes/Integration-Runtime')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LEVIATAN_DESTINO_1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Leviatan_Destino",
-					"type": "LinkedServiceReference"
-				},
-				"parameters": {
-					"TABLA": {
-						"type": "string"
-					},
-					"ESQUEMA": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": {
-						"value": "@dataset().ESQUEMA",
-						"type": "Expression"
-					},
-					"table": {
-						"value": "@dataset().TABLA",
-						"type": "Expression"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Destino')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LEVIATAN_DESTINO_2')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Leviatan_Destino",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Destino')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LEVIATAN_ETL_FINAL')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Leviatan_ETL_Final",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": "dbo",
-					"table": "RESULTADO_FINAL"
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Leviatan_ETL_Final')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/LEVIATAN_ORIGEN_1')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "Leviatan_Origen",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Origen')]"
-			]
-		},
 		{
 			"name": "[concat(parameters('factoryName'), '/MIGRACION COMPLETA')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
@@ -245,8 +45,7 @@
 							},
 							"dataset": {
 								"referenceName": "LEVIATAN_ORIGEN_1",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							},
 							"firstRowOnly": false
 						}
@@ -298,8 +97,7 @@
 									"inputs": [
 										{
 											"referenceName": "LEVIATAN_ORIGEN_1",
-											"type": "DatasetReference",
-											"parameters": {}
+											"type": "DatasetReference"
 										}
 									],
 									"outputs": [
@@ -342,8 +140,7 @@
 							},
 							"dataset": {
 								"referenceName": "LEVIATAN_ETL_FINAL",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						}
 					},
@@ -428,15 +225,13 @@
 						"inputs": [
 							{
 								"referenceName": "LEVIATAN_DESTINO_2",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "LEVIATAN_ETL_FINAL",
-								"type": "DatasetReference",
-								"parameters": {}
+								"type": "DatasetReference"
 							}
 						]
 					},
@@ -495,13 +290,7 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/LEVIATAN_ORIGEN_1')]",
-				"[concat(variables('factoryId'), '/datasets/LEVIATAN_ETL_FINAL')]",
-				"[concat(variables('factoryId'), '/datasets/LEVIATAN_DESTINO_2')]",
-				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Destino')]",
-				"[concat(variables('factoryId'), '/datasets/LEVIATAN_DESTINO_1')]"
-			]
+			"dependsOn": []
 		}
 	]
 }
