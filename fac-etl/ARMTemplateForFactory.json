@@ -97,7 +97,7 @@
 										"source": {
 											"type": "AzureSqlSource",
 											"sqlReaderQuery": {
-												"value": "IF @{item().TIPO}= 'TRN'\nBEGIN\n\tIF variables('lastCode') <> 'null'\n\tBEGIN\n\t\tSELECT * FROM @{item().COMPLETO} WHERE ID > CAST(variables('lastCode') AS INT)\n\tEND\n\tELSE\n\tBEGIN\n\t\tSELECT * FROM @{item().COMPLETO}\n\tEND\nEND\nELSE \nBEGIN\n    SELECT * FROM @{item().COMPLETO}\nEND",
+												"value": "IF @{item().TIPO}= 'TRN'\nBEGIN\n\tIF {variables('lastCode')} <> 'null'\n\tBEGIN\n\t\tSELECT * FROM @{item().COMPLETO} WHERE ID > CAST({variables('lastCode')} AS INT)\n\tEND\n\tELSE\n\tBEGIN\n\t\tSELECT * FROM @{item().COMPLETO}\n\tEND\nEND\nELSE \nBEGIN\n    SELECT * FROM @{item().COMPLETO}\nEND",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00"
