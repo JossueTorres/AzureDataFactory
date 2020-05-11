@@ -1,0 +1,16 @@
+{
+	"name": "LEVIATAN_ETL_FINAL",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Leviatan_ETL_Final",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "RESULTADO_FINAL"
+		}
+	}
+}
