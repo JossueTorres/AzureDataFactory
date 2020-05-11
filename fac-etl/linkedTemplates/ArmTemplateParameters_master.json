@@ -8,6 +8,9 @@
 		"Leviatan_Destino_connectionString": {
 			"value": ""
 		},
+		"Leviatan_ETL_Final_connectionString": {
+			"value": ""
+		},
 		"Leviatan_Origen_connectionString": {
 			"value": ""
 		},

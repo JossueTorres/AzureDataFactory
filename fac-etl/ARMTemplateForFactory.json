@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'Leviatan_Destino'"
 		},
+		"Leviatan_ETL_Final_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Leviatan_ETL_Final'"
+		},
 		"Leviatan_Origen_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'Leviatan_Origen'"
@@ -27,9 +31,16 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "TABLAS",
+						"name": "Buscar Tablas",
 						"type": "Lookup",
-						"dependsOn": [],
+						"dependsOn": [
+							{
+								"activity": "Guardar Codigo",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
 						"policy": {
 							"timeout": "7.00:00:00",
 							"retry": 0,
@@ -41,7 +52,7 @@
 						"typeProperties": {
 							"source": {
 								"type": "AzureSqlSource",
-								"sqlReaderQuery": "SELECT '[' + TABLE_SCHEMA + '].[' + TABLE_NAME + ']' As COMPLETO\n, TABLE_SCHEMA As ESQUEMA,\nTABLE_NAME As TABLA\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'",
+								"sqlReaderQuery": "SELECT \n'[' + TABLE_SCHEMA + '].[' + TABLE_NAME + ']' As COMPLETO,\nCASE WHEN TABLE_NAME IN('PERSONA') THEN 'TRN' ELSE 'CAT' END TIPO,\nTABLE_SCHEMA As ESQUEMA,\nTABLE_NAME As TABLA\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'",
 								"queryTimeout": "02:00:00"
 							},
 							"dataset": {
@@ -53,11 +64,11 @@
 						}
 					},
 					{
-						"name": "LOOP TABLAS",
+						"name": "Migrar Tablas",
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "TABLAS",
+								"activity": "Buscar Tablas",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -66,7 +77,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@activity('TABLAS').output.value",
+								"value": "@activity('Buscar Tablas').output",
 								"type": "Expression"
 							},
 							"activities": [
@@ -86,7 +97,7 @@
 										"source": {
 											"type": "AzureSqlSource",
 											"sqlReaderQuery": {
-												"value": "SELECT * FROM @{item().COMPLETO}",
+												"value": "IF @{item().TIPO}= 'TRN'\nBEGIN\n\tIF variables('lastCode') <> ''\n\tBEGIN\n\t\tSELECT * FROM @{item().COMPLETO} WHERE ID > CAST(variables('lastCode') AS INT)\n\tEND\n\tELSE\n\tBEGIN\n\t\tSELECT * FROM @{item().COMPLETO}\n\tEND\nEND\nELSE \nBEGIN\n    SELECT * FROM @{item().COMPLETO}\nEND",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00"
@@ -122,12 +133,185 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "Buscar Codigo",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT ISNULL(MAX(CAST(CODIGO AS INT)), '') CODIGO FROM RESULTADO_FINAL",
+								"queryTimeout": "02:00:00"
+							},
+							"dataset": {
+								"referenceName": "LEVIATAN_ETL_FINAL",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						}
+					},
+					{
+						"name": "Migrar Intermediaria",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Migrar Tablas",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": {
+									"value": "SELECT PERSONA.ID CODIGO, PERSONA.NOMBRE, PERSONA.CORREO, AUTO.NOMBRE AUTOMOVIL FROM PERSONA\nCROSS JOIN \"AUTO\"\nWHERE PERSONA.ID > @{variables('lastCode')}",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "AzureSqlSink"
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "CODIGO",
+											"type": "Int32"
+										},
+										"sink": {
+											"name": "CODIGO",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOMBRE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOMBRE",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CORREO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "CORREO",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "AUTOMOVIL",
+											"type": "String"
+										},
+										"sink": {
+											"name": "AUTOMOVIL",
+											"type": "String"
+										}
+									}
+								]
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "LEVIATAN_DESTINO_2",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "LEVIATAN_ETL_FINAL",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Guardar Codigo",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "Buscar Codigo",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "lastCode",
+							"value": {
+								"value": "@activity('Buscar Codigo').output.firstRow.CODIGO",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Borrar Intermediaria",
+						"type": "SqlServerStoredProcedure",
+						"dependsOn": [
+							{
+								"activity": "Migrar Intermediaria",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"storedProcedureName": "[[dbo].[SP_LIMPIAR]"
+						},
+						"linkedServiceName": {
+							"referenceName": "Leviatan_Destino",
+							"type": "LinkedServiceReference"
+						}
 					}
 				],
+				"variables": {
+					"lastCode": {
+						"type": "String"
+					}
+				},
 				"annotations": []
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/LEVIATAN_ORIGEN_1')]",
+				"[concat(variables('factoryId'), '/datasets/LEVIATAN_ETL_FINAL')]",
+				"[concat(variables('factoryId'), '/datasets/LEVIATAN_DESTINO_2')]",
+				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Destino')]",
 				"[concat(variables('factoryId'), '/datasets/LEVIATAN_DESTINO_1')]"
 			]
 		},
@@ -167,6 +351,45 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LEVIATAN_DESTINO_2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Leviatan_Destino",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Leviatan_Destino')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LEVIATAN_ETL_FINAL')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "Leviatan_ETL_Final",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "RESULTADO_FINAL"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/Leviatan_ETL_Final')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LEVIATAN_ORIGEN_1')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -193,6 +416,25 @@
 				"type": "AzureSqlDatabase",
 				"typeProperties": {
 					"connectionString": "[parameters('Leviatan_Destino_connectionString')]"
+				},
+				"connectVia": {
+					"referenceName": "Integration-Runtime",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/Integration-Runtime')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Leviatan_ETL_Final')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": "[parameters('Leviatan_ETL_Final_connectionString')]"
 				},
 				"connectVia": {
 					"referenceName": "Integration-Runtime",

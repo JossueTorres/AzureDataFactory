@@ -11,6 +11,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'Leviatan_Destino'"
 		},
+		"Leviatan_ETL_Final_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'Leviatan_ETL_Final'"
+		},
 		"Leviatan_Origen_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'Leviatan_Origen'"
@@ -44,6 +48,9 @@
 					},
 					"Leviatan_Destino_connectionString": {
 						"value": "[parameters('Leviatan_Destino_connectionString')]"
+					},
+					"Leviatan_ETL_Final_connectionString": {
+						"value": "[parameters('Leviatan_ETL_Final_connectionString')]"
 					},
 					"Leviatan_Origen_connectionString": {
 						"value": "[parameters('Leviatan_Origen_connectionString')]"
