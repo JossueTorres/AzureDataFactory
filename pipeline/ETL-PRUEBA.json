@@ -23,7 +23,52 @@
 					"sink": {
 						"type": "AzureSqlSink"
 					},
-					"enableStaging": false
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "CODIGO",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "CODIGO",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NOMBRE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NOMBRE",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CORREO",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CORREO",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "AUTOMOVIL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "AUTOMOVIL",
+									"type": "String"
+								}
+							}
+						]
+					}
 				},
 				"inputs": [
 					{
