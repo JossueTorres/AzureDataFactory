@@ -73,24 +73,24 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "LEVIATAN_ORIGEN_2",
-									"type": "DatasetReference",
-									"parameters": {
-										"ESQUEMA": {
-											"value": "@item().ESQUEMA",
-											"type": "Expression"
-										},
-										"TABLA": {
-											"value": "@item().TABLA",
-											"type": "Expression"
-										}
-									}
+									"referenceName": "LEVIATAN_ORIGEN_1",
+									"type": "DatasetReference"
 								}
 							],
 							"outputs": [
 								{
-									"referenceName": "LEVIATAN_DESTINO_2",
-									"type": "DatasetReference"
+									"referenceName": "LEVIATAN_DESTINO_1",
+									"type": "DatasetReference",
+									"parameters": {
+										"TABLA": {
+											"value": "@item().TABLA",
+											"type": "Expression"
+										},
+										"ESQUEMA": {
+											"value": "@item().ESQUEMA",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
