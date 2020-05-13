@@ -1,0 +1,120 @@
+{
+	"name": "COPIA COMPLETA",
+	"properties": {
+		"activities": [
+			{
+				"name": "Buscar Tablas",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT \n'[' + TABLE_SCHEMA + '].[' + TABLE_NAME + ']' As COMPLETO,\nCASE WHEN TABLE_NAME IN('PERSONA') THEN 'TRN' ELSE 'CAT' END TIPO,\nTABLE_SCHEMA As ESQUEMA,\nTABLE_NAME As TABLA\nFROM INFORMATION_SCHEMA.TABLES\nWHERE TABLE_TYPE = 'BASE TABLE'",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "LEVIATAN_ORIGEN_1",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Iterar Tablas",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Buscar Tablas",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Buscar Tablas').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "COPIAR TABLA",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "7.00:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "02:00:00"
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "LEVIATAN_DESTINO_1",
+									"type": "DatasetReference"
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Ultimo Migrado",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Iterar Tablas",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": []
+			},
+			{
+				"name": "Borrar Datos",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Ultimo Migrado",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "7.00:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": []
+			}
+		],
+		"annotations": []
+	}
+}
