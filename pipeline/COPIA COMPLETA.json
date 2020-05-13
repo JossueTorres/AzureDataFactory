@@ -115,7 +115,18 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT ISNULL(MAX(ID), 0) ID FROM PERSONA",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "LEVIATAN_DESTINO_2",
+						"type": "DatasetReference"
+					}
+				}
 			},
 			{
 				"name": "Borrar Datos",
@@ -135,7 +146,20 @@
 					"secureOutput": false,
 					"secureInput": false
 				},
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[SP_BORRAR_DATOS]",
+					"storedProcedureParameters": {
+						"MAXID": {
+							"value": "",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "Leviatan_Origen",
+					"type": "LinkedServiceReference"
+				}
 			}
 		],
 		"annotations": []
